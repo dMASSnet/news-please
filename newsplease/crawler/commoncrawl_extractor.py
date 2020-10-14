@@ -142,7 +142,7 @@ class CommonCrawlExtractor:
                 return False, article
 
         # filter by callback
-        if self.__filter_callback
+        if self.__filter_callback:
             if not article:
                 html, url, download_date = self.__from_warc(warc_record)
                 if self.__filter_callback(html, url, download_date):

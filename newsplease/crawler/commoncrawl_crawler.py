@@ -208,7 +208,9 @@ def __callback_on_warc_completed(warc_path, counter_article_passed, counter_arti
 
 
 def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extracted=None,
-                                  callback_on_warc_completed=None, valid_hosts=None,
+                                  callback_on_warc_completed=None, 
+                                  filter_callback=None,
+                                  valid_hosts=None,
                                   start_date=None, end_date=None, 
                                   strict_date=True, reuse_previously_downloaded_files=True,
                                   local_download_dir_warc=None,
@@ -250,8 +252,8 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
                                                    show_download_progress=show_download_progress,
                                                    log_level=log_level,
                                                    delete_warc_after_extraction=delete_warc_after_extraction,
-                                                   log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
-                                                   heuristics=heuristics)
+                                                   log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs
+                                                   )
 
 
 def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_completed=None, filter_callback=None,

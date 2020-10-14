@@ -116,7 +116,9 @@ class CommonCrawlExtractor:
         # filter by date
         if self.__filter_start_date or self.__filter_end_date:
             if not article:
-                article = NewsPlease.from_warc(warc_record)
+                article = NewsPlease.from_warc(warc_record, self.__heuristics)
+                if not article:
+                    return False, article
 
             publishing_date = self.__get_publishing_date(warc_record, article)
             if not publishing_date:
@@ -313,7 +315,7 @@ class CommonCrawlExtractor:
                                  strict_date=True, reuse_previously_downloaded_files=True, local_download_dir_warc=None,
                                  continue_after_error=True, show_download_progress=False,
                                  log_level=logging.ERROR, delete_warc_after_extraction=True,
-                                 log_pathname_fully_extracted_warcs=None):
+                                 log_pathname_fully_extracted_warcs=None, heuristics=None):
         """
         Crawl and extract articles form the news crawl provided by commoncrawl.org. For each article that was extracted
         successfully the callback function callback_on_article_extracted is invoked where the first parameter is the
@@ -349,5 +351,6 @@ class CommonCrawlExtractor:
         self.__log_level = log_level
         self.__delete_warc_after_extraction = delete_warc_after_extraction
         self.__log_pathname_fully_extracted_warcs = log_pathname_fully_extracted_warcs
+        self.__heuristics = heuristics
 
         self.__run()

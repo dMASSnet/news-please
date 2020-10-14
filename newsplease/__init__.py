@@ -21,7 +21,7 @@ class NewsPlease:
     """
 
     @staticmethod
-    def from_warc(warc_record):
+    def from_warc(warc_record, heuristics = None):
         """
         Extracts relevant information from a WARC record. This function does not invoke scrapy but only uses the article
         extractor.
@@ -42,8 +42,15 @@ class NewsPlease:
         html = raw_stream.decode(encoding)
         url = warc_record.rec_headers.get_header('WARC-Target-URI')
         download_date = warc_record.rec_headers.get_header('WARC-Date')
-        article = NewsPlease.from_html(html, url=url, download_date=download_date)
-        return article
+
+        if heuristics == None:
+            article = NewsPlease.from_html(html, url=url, download_date=download_date)
+            return article
+        elif heuristics.is_article(html, url):
+            article = NewsPlease.from_html(html, url=url, download_date=download_date)
+            return article
+        else:
+            return None
 
     @staticmethod
     def from_html(html, url=None, download_date=None):

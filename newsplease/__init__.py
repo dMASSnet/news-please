@@ -44,12 +44,15 @@ class NewsPlease:
         download_date = warc_record.rec_headers.get_header('WARC-Date')
 
         if heuristics == None:
+            print('#####################################  NO HEURISTICS')
             article = NewsPlease.from_html(html, url=url, download_date=download_date)
             return article
         elif heuristics.is_article(html, url):
+            print('#####################################  HEURISTICS HIT PASS')
             article = NewsPlease.from_html(html, url=url, download_date=download_date)
             return article
         else:
+            print('#####################################  HEURISTICS HIT FAIL!!!!!!!!!!!!')
             return None
 
     @staticmethod

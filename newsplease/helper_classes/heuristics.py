@@ -62,6 +62,7 @@ class Heuristics(HeuristicsManager):
 
         :return bool: True if the tag is contained.
         """
+        print("###########################\n\n########################")
         og_type_article = response.xpath('//meta') \
             .re('(property=["\']og:type["\'].*content=["\']article["\'])|'
                 '(content=["\']article["\'].*property=["\']og:type["\'])')

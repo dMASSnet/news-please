@@ -353,6 +353,7 @@ class CommonCrawlExtractor:
         self.__log_pathname_fully_extracted_warcs = log_pathname_fully_extracted_warcs
         self.__heuristics = heuristics
 
-        print(self.__heuristics)
+        print(__name__)
+        print(heuristics)
 
         self.__run()

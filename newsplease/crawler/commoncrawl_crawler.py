@@ -235,6 +235,8 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
     :param heuristics:
     :return:
     """
+    print(__name__)
+    print(heuristics)
     commoncrawl_extractor = CommonCrawlExtractor()
     commoncrawl_extractor.extract_from_commoncrawl(warc_download_url, callback_on_article_extracted,
                                                    callback_on_warc_completed=callback_on_warc_completed,
@@ -278,6 +280,8 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
     :return:
     """
     __setup(local_download_dir_warc, log_level)
+    print(__name__)
+    print(heuristics)
 
     global __extern_callback_on_warc_completed
     __extern_callback_on_warc_completed = callback_on_warc_completed

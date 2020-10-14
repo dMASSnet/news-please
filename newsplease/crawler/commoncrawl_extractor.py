@@ -16,6 +16,7 @@ from hurry.filesize import size
 from scrapy.utils.log import configure_logging
 from six.moves import urllib
 from warcio.archiveiterator import ArchiveIterator
+from bs4.dammit import EncodingDetector
 
 from .. import NewsPlease
 
@@ -29,6 +30,8 @@ class CommonCrawlExtractor:
     __warc_download_url = None
     # download dir for warc files
     __local_download_dir_warc = './cc_download_warc/'
+    # callback for custom filter
+    __filter_callback = None
     # hosts (if None or empty list, any host is OK)
     __filter_valid_hosts = []  # example: ['elrancaguino.cl']
     # start date (if None, any date is OK as start date), as datetime
@@ -93,6 +96,31 @@ class CommonCrawlExtractor:
         with open(self.__log_pathname_fully_extracted_warcs, 'a') as log_file:
             log_file.write(warc_url + '\n')
 
+    def __from_warc(self, warc_record):
+        """
+        Extracts relevant information from a WARC record. This function does not invoke scrapy but only uses the article
+        extractor.
+        :return:
+        """
+        raw_stream = warc_record.raw_stream.read()
+        encoding = None
+        try:
+            encoding = warc_record.http_headers.get_header(
+                'Content-Type').split(';')[1].split('=')[1]
+        except:
+            pass
+        if not encoding:
+            encoding = EncodingDetector.find_declared_encoding(
+                raw_stream, is_html=True)
+        if not encoding:
+            # assume utf-8
+            encoding = 'utf-8'
+
+        html = raw_stream.decode(encoding)
+        url = warc_record.rec_headers.get_header('WARC-Target-URI')
+        download_date = warc_record.rec_headers.get_header('WARC-Date')
+        return html, url, download_date
+
     def __filter_record(self, warc_record, article=None):
         """
         Returns true if a record passes all tests: hosts, publishing date
@@ -113,10 +141,19 @@ class CommonCrawlExtractor:
             else:
                 return False, article
 
+        # filter by callback
+        if self.__filter_callback
+            if not article:
+                html, url, download_date = self.__from_warc(warc_record)
+                if self.__filter_callback(html, url, download_date):
+                    article = NewsPlease.from_html(html, url, download_date)
+                else:
+                    return False, article
+
         # filter by date
         if self.__filter_start_date or self.__filter_end_date:
             if not article:
-                article = NewsPlease.from_warc(warc_record, self.__heuristics)
+                article = NewsPlease.from_warc(warc_record)
                 if not article:
                     return False, article
 
@@ -310,12 +347,13 @@ class CommonCrawlExtractor:
 
     def extract_from_commoncrawl(self, warc_download_url, callback_on_article_extracted,
                                  callback_on_warc_completed=None,
+                                 filter_callback=None,
                                  valid_hosts=None,
                                  start_date=None, end_date=None,
                                  strict_date=True, reuse_previously_downloaded_files=True, local_download_dir_warc=None,
                                  continue_after_error=True, show_download_progress=False,
                                  log_level=logging.ERROR, delete_warc_after_extraction=True,
-                                 log_pathname_fully_extracted_warcs=None, heuristics=None):
+                                 log_pathname_fully_extracted_warcs=None):
         """
         Crawl and extract articles form the news crawl provided by commoncrawl.org. For each article that was extracted
         successfully the callback function callback_on_article_extracted is invoked where the first parameter is the
@@ -325,6 +363,7 @@ class CommonCrawlExtractor:
         :param warc_download_url:
         :param callback_on_article_extracted:
         :param callback_on_warc_completed:
+        :param filter_callback:
         :param valid_hosts:
         :param start_date:
         :param end_date:
@@ -337,6 +376,7 @@ class CommonCrawlExtractor:
         :return:
         """
         self.__warc_download_url = warc_download_url
+        self.__filter_callback = filter_callback
         self.__filter_valid_hosts = valid_hosts
         self.__filter_start_date = start_date
         self.__filter_end_date = end_date
@@ -351,9 +391,5 @@ class CommonCrawlExtractor:
         self.__log_level = log_level
         self.__delete_warc_after_extraction = delete_warc_after_extraction
         self.__log_pathname_fully_extracted_warcs = log_pathname_fully_extracted_warcs
-        self.__heuristics = heuristics
-
-        print(__name__)
-        print(heuristics)
 
         self.__run()

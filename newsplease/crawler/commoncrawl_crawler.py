@@ -223,6 +223,7 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
     :param warc_download_url:
     :param callback_on_article_extracted:
     :param callback_on_warc_completed:
+    :param filter_callback:
     :param valid_hosts:
     :param start_date:
     :param end_date:
@@ -232,7 +233,6 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
     :param continue_after_error:
     :param show_download_progress:
     :param log_level:
-    :param heuristics:
     :return:
     """
     print(__name__)
@@ -240,6 +240,7 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
     commoncrawl_extractor = CommonCrawlExtractor()
     commoncrawl_extractor.extract_from_commoncrawl(warc_download_url, callback_on_article_extracted,
                                                    callback_on_warc_completed=callback_on_warc_completed,
+                                                   filter_callback=filter_callback,
                                                    valid_hosts=valid_hosts,
                                                    start_date=start_date, end_date=end_date,
                                                    strict_date=strict_date,
@@ -253,12 +254,12 @@ def __start_commoncrawl_extractor(warc_download_url, callback_on_article_extract
                                                    heuristics=heuristics)
 
 
-def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_completed=None, valid_hosts=None,
-                           start_date=None, end_date=None, warc_files_start_date=None, strict_date=True, 
+def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_completed=None, filter_callback=None,
+                           valid_hosts=None, start_date=None, end_date=None, warc_files_start_date=None, strict_date=True,
                            reuse_previously_downloaded_files=True, local_download_dir_warc=None, 
                            continue_after_error=True, show_download_progress=False,
                            number_of_extraction_processes=4, log_level=logging.ERROR,
-                           delete_warc_after_extraction=True, continue_process=True, heuristics=None):
+                           delete_warc_after_extraction=True, continue_process=True):
     """
     Crawl and extract articles form the news crawl provided by commoncrawl.org. For each article that was extracted
     successfully the callback function callback_on_article_extracted is invoked where the first parameter is the
@@ -267,6 +268,7 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
     :param delete_warc_after_extraction:
     :param number_of_extraction_processes:
     :param callback_on_article_extracted:
+    :param filter_callback:
     :param valid_hosts:
     :param start_date:
     :param end_date:
@@ -276,12 +278,9 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
     :param continue_after_error:
     :param show_download_progress:
     :param log_level:
-    :param heuristics:
     :return:
     """
     __setup(local_download_dir_warc, log_level)
-    print(__name__)
-    print(heuristics)
 
     global __extern_callback_on_warc_completed
     __extern_callback_on_warc_completed = callback_on_warc_completed
@@ -318,6 +317,7 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
             extraction_process_pool.map(partial(__start_commoncrawl_extractor,
                                                 callback_on_article_extracted=callback_on_article_extracted,
                                                 callback_on_warc_completed=__callback_on_warc_completed,
+                                                filter_callback=filter_callback,
                                                 valid_hosts=valid_hosts,
                                                 start_date=start_date, end_date=end_date,
                                                 strict_date=strict_date,
@@ -328,13 +328,14 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
                                                 log_level=log_level,
                                                 delete_warc_after_extraction=delete_warc_after_extraction,
                                                 log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
-                                                heuristics=heuristics),
+                                                ),
                                         warc_download_urls)
     else:
         for warc_download_url in warc_download_urls:
             __start_commoncrawl_extractor(warc_download_url,
                                           callback_on_article_extracted=callback_on_article_extracted,
                                           callback_on_warc_completed=__callback_on_warc_completed,
+                                          filter_callback=filter_callback,
                                           valid_hosts=valid_hosts,
                                           start_date=start_date, end_date=end_date,
                                           strict_date=strict_date,
@@ -345,4 +346,4 @@ def crawl_from_commoncrawl(callback_on_article_extracted, callback_on_warc_compl
                                           log_level=log_level,
                                           delete_warc_after_extraction=delete_warc_after_extraction,
                                           log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
-                                          heuristics=heuristics)
+                                          )
